@@ -1,0 +1,52 @@
+name: UMC Dev CI/CD # 스크립트를 설명하는 이름 지어주기(마음대로 지어도됨)
+
+on:
+  pull_request:
+    branches:
+      - develop
+    types:
+      - closed
+  workflow_dispatch: # (2).수동 실행도 가능하도록
+
+jobs:
+  build:
+    runs-on: ubuntu-latest # (3).OS환경
+    if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'dev'
+
+    steps:
+      - name: Checkout # 해당 step에 대한 이름 지어주기
+        uses: actions/checkout@v2 # (4).코드 check out(코드 가져오기)
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: 17 # (5).자바 설치
+          distribution: 'adopt' # 신경쓸필요 X
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
+        shell: bash # (6). gradlew에게 권한 부여
+
+      - name: Build the Gradle
+        run: ./gradlew clean build -x test
+        shell: bash # (7).build 시작
+
+      - name: Get current time
+        uses: 1466587594/get-current-time@v2
+        id: current-time
+        with:
+          format: YYYY-MM-DDTHH-mm-ss
+          utcOffset: "+09:00" # (8).build 시점의 시간확보
+
+      - name: Show Current Time
+        run: echo "CurrentTime=$"
+        shell: bash # (9). 확보한 시간 보여주기
+
+      - name: Generate deployment package
+        run: | # 중요!
+          mkdir -p deploy
+          cp build/libs/*.jar deploy/application.jar # build/libs/*.jar(스프링부트 빌드되면 생성되는 파일)을 deploy/application.jar에 복사
+          cp Procfile deploy/Procfile # Procfile을 deploy/Procfile에 복사
+          cp -r .ebextensions deploy/.ebextensions
+          cp -r .platform deploy/.platform
+          cd deploy && zip -r deploy.zip .
