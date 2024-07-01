@@ -3,7 +3,7 @@ name: UMC Dev CI/CD # 스크립트를 설명하는 이름 지어주기(마음대
 on:
   pull_request:
     branches:
-      - develop
+      - dev
     types:
       - closed
   workflow_dispatch: # (2).수동 실행도 가능하도록
