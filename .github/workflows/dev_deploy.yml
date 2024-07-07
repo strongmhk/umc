@@ -59,7 +59,7 @@ jobs:
           application_name: umc-dev
           environment_name: Umc-dev-env
           version_label: github-action-${{ steps.current-time.outputs.formattedTime }} # 이 설정을 위해 위의 8,9번 작업을 한 것
-          region: ap-northeast-1
+          region: ap-northeast-2
           deployment_package: deploy/deploy.zip
           wait_for_deployment: false
           # wait_for_environment_recovery: 60 # 깃허브 액션이 CI후에 CD까지 기다리고 OK 해주는 것.
