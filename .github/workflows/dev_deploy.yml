@@ -47,6 +47,21 @@ jobs:
           mkdir -p deploy
           cp build/libs/*.jar deploy/application.jar # build/libs/*.jar(스프링부트 빌드되면 생성되는 파일)을 deploy/application.jar에 복사
           cp Procfile deploy/Procfile # Procfile을 deploy/Procfile에 복사
-          cp -r .ebextensions deploy/.ebextensions
+          cp -r .ebextensions_dev deploy/.ebextensions
           cp -r .platform deploy/.platform
           cd deploy && zip -r deploy.zip .
+
+      - name: Beanstalk Deploy
+        uses: einaregilsson/beanstalk-deploy@v20
+        with:
+          aws_access_key: ${{ secrets.AWS_ACTION_ACCESS_KEY_ID }}
+          aws_secret_key: ${{ secrets.AWS_ACTION_SECRET_ACCESS_KEY }}
+          application_name: umc-dev # 원하는 어플 이름
+          environment_name: Umc-dev-env # 원하는 환경 이름
+          version_label: github-action-${{ steps.current-time.outputs.formattedTime }} # 이 설정을 위해 위의 8,9번 작업을 한 것
+          region: ap-northeast-1
+          deployment_package: deploy/deploy.zip
+          wait_for_deployment: false
+          # wait_for_environment_recovery: 60 # 깃허브 액션이 CI후에 CD까지 기다리고 OK 해주는 것.
+          # 이것을 사용하면 github와 ELB가 각각 생각하는 버전이 달라질 수 있어 번거로워짐.
+          # 버전 싱크가 잘 맞지 않는 경우가 일어남. ELB가 인식한 버전이 중요. 사용하지 말자
